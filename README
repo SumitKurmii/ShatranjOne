@@ -1,0 +1,16 @@
+# Shatranj One
+
+A full-stack chess platform built around a custom C++ chess engine.
+
+## Components
+
+- C++ chess engine
+- React frontend
+- Node.js backend
+- Game analysis
+- Online gameplay
+- Game history
+
+## Current Status
+
+Development — Phase 1: Project Setup
