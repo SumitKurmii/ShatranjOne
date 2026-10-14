@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\shatranj-one.dir/objects.a
-C:\MinGW\bin\ar.exe qc CMakeFiles\shatranj-one.dir/objects.a @CMakeFiles\shatranj-one.dir\objects1.rsp
-C:\MinGW\bin\c++.exe -Wl,--whole-archive CMakeFiles\shatranj-one.dir/objects.a -Wl,--no-whole-archive -o shatranj-one.exe -Wl,--out-implib,libshatranj-one.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\shatranj-one.dir\linkLibs.rsp
