@@ -1,7 +1,10 @@
 # Shatranj One
 
-A chess platform built around a custom C++ chess engine,
-with online gameplay and game-analysis features planned.
+A chess platform built around a custom C++ chess engine, with online gameplay and game analysis planned.
+
+## Current Status
+
+The project currently has a working CMake build and GoogleTest integration. Chess functionality is not implemented yet.
 
 ## Tech Stack
 
@@ -16,12 +19,59 @@ with online gameplay and game-analysis features planned.
 
 - CMake 3.20 or newer
 - A C++17-compatible compiler
-- MinGW Makefiles build tool
+- A compatible build tool
 - Internet access for the initial GoogleTest download
 
-## Build
+## Build on Windows (MSYS2 UCRT64)
 
-Configure the project:
+Ensure `C:\msys64\ucrt64\bin` is on your PATH, then run these commands in PowerShell from the repository root:
 
 ```powershell
 cmake -S engine -B engine/build -G "MinGW Makefiles"
+cmake --build engine/build
+```
+
+## Build on Linux or macOS
+
+With a C++ compiler and CMake installed, run from the repository root:
+
+```bash
+cmake -S engine -B engine/build
+cmake --build engine/build
+```
+
+## Run the Engine
+
+Windows:
+
+```powershell
+.\engine\build\shatranj-one.exe
+```
+
+Linux or macOS:
+
+```bash
+./engine/build/shatranj-one
+```
+
+## Run Tests
+
+From the repository root:
+
+```powershell
+ctest --test-dir engine/build --output-on-failure
+```
+
+The same CTest command works in Bash on Linux and macOS.
+
+## Roadmap
+
+- [x] Repository and build system
+- [x] Initial C++ executable
+- [x] GoogleTest integration
+- [ ] GitHub Actions CI
+- [ ] Board representation and position state
+- [ ] FEN parsing
+- [ ] Legal move generation and perft
+- [ ] Search and UCI protocol
+- [ ] Web application and game analysis
