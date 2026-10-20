@@ -73,3 +73,23 @@ Roadmap
 - [ ] Legal move generation and perft
 - [ ] Search and UCI protocol
 - [ ] Web application and game analysis
+## Progress
+
+### Position System
+- [x] Created `Position` class
+- [x] Added 64-square board representation
+- [x] Added piece encoding
+- [x] Added side-to-move state
+- [x] Added castling rights
+- [x] Added en-passant target square
+- [x] Added half-move and full-move counters
+- [x] Added position reset functionality
+- [x] Added basic GoogleTest coverage
+- [x] Verified tests are discovered and executed by CTest
+- [x] Verified a deliberately failing test is correctly detected
+
+### Build & Testing
+- [x] CMake build configured
+- [x] GoogleTest integrated
+- [x] CTest configured
+- [x] CI workflow configured
