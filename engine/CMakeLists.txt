@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Main chess engine executable
 add_executable(shatranj-one
     src/main.cpp
+    src/position.cpp
 )
 
 # Enable useful compiler warnings
@@ -41,6 +42,7 @@ enable_testing()
 
 add_executable(engine_tests
     tests/engine_test.cpp
+    tests/position_test.cpp
 )
 
 target_link_libraries(engine_tests
