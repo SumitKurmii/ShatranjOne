@@ -1,54 +1,27 @@
-# Shatranj One
+# ShatranjOne
 
-A chess platform built around a custom C++ chess engine, with online gameplay and game analysis planned.
+ShatranjOne is a chess engine project built in C++ with CMake and GoogleTest.
 
-## Current Status
+## Build
 
-The project currently has:
+### Windows
 
-- A working C++17/CMake build.
-- GoogleTest and CTest integration.
-- Reproducible builds from a fresh clone.
-- GitHub Actions CI for Debug and Release builds on Ubuntu.
-- CI verification through an intentionally failing test.
+From the repository root:
 
-Chess functionality is not implemented yet. The next milestone is board/position representation.
-
-## Tech Stack
-
-- C++17
-- CMake
-- MinGW-w64 (GCC)
-- GoogleTest
-- GitHub Actions
-- React (planned)
-- Node.js (planned)
-
-## Prerequisites
-
-- CMake 3.20 or newer
-- A C++17-compatible compiler
-- A compatible build tool
-- Internet access for the initial GoogleTest download
-
-## Build on Windows (MSYS2 UCRT64)
-
-Ensure `C:\msys64\ucrt64\bin` is on your PATH, then run these commands in PowerShell from the repository root:
-
-```powershell
+```bash
 cmake -S engine -B engine/build -G "MinGW Makefiles"
 cmake --build engine/build
 
-Build on Linux or macOS
-With a C++ compiler and CMake installed, run from the repository root:
+Linux or macOS
+With a C++ compiler and CMake installed:
 cmake -S engine -B engine/build
 cmake --build engine/build
 
 Run the Engine
-Windows:
+Windows
 .\engine\build\shatranj-one.exe
 
-Linux or macOS:
+Linux or macOS
 ./engine/build/shatranj-one
 
 Run Tests
@@ -56,28 +29,35 @@ From the repository root:
 ctest --test-dir engine/build --output-on-failure
 
 The same CTest command works in Bash on Linux and macOS.
+
+The current test suite contains 10 tests covering the Position system.
 Continuous Integration
 GitHub Actions runs the C++ engine build and tests on every push and pull request to main.
+
 The CI matrix currently covers:
 - Debug
 - Release
 The workflow configures, builds, and runs CTest on ubuntu-latest.
+
 The CI pipeline has also been verified to fail when the test suite contains an intentional failure.
 Roadmap
 - [x] Repository and build system
 - [x] Initial C++ executable
 - [x] GoogleTest integration
 - [x] GitHub Actions CI
-- [ ] Board representation and position state
+- [x] Board representation and position state
 - [ ] FEN parsing
 - [ ] Legal move generation and perft
 - [ ] Search and UCI protocol
 - [ ] Web application and game analysis
-## Progress
-
-### Position System
-- [x] Created `Position` class
+Progress
+Position System
+- [x] Created Position class
+- [x] Split Position implementation into position.h and position.cpp
 - [x] Added 64-square board representation
+- [x] Added Color enum
+- [x] Added Piece enum
+- [x] Added Square enum
 - [x] Added piece encoding
 - [x] Added side-to-move state
 - [x] Added castling rights
@@ -85,11 +65,14 @@ Roadmap
 - [x] Added half-move and full-move counters
 - [x] Added position reset functionality
 - [x] Added basic GoogleTest coverage
+- [x] Added invalid-square handling
 - [x] Verified tests are discovered and executed by CTest
 - [x] Verified a deliberately failing test is correctly detected
-
-### Build & Testing
+- [x] Verified all 10 Position tests pass
+Build & Testing
 - [x] CMake build configured
 - [x] GoogleTest integrated
 - [x] CTest configured
 - [x] CI workflow configured
+- [x] Engine builds successfully
+- [x] Test suite passes successfully
