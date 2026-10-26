@@ -43,6 +43,7 @@ enable_testing()
 add_executable(engine_tests
     tests/engine_test.cpp
     tests/position_test.cpp
+    src/position.cpp
 )
 
 target_link_libraries(engine_tests
