@@ -1,5 +1,6 @@
 #include "position.h"
-
+#include <sstream>
+using namespace std;
 Position::Position() {
     for (int i = 0; i < 64; i++) {
         board[i] = 0;
@@ -51,8 +52,8 @@ void Position::setCastlingRights(bool K, bool Q, bool k, bool q) {
     castlingRights[3] = q;
 }
 
-std::bitset<4> Position::getCastlingRights() {
-    return castlingRights;
+bool Position::getCastlingRights(int index) {
+    return castlingRights[index];
 }
 
 void Position::setEnPassantTargetSquare(int square) {
@@ -122,4 +123,151 @@ void Position::resetPosition() {
 
 int Position::getPieceCode(int square) {
     return viewBoard(square);
+}
+
+
+// fen parsing function 
+bool Position::loadFEN(const std::string& fen) {
+
+    int rank = 7;
+    int file = 0;
+
+    std::stringstream ss(fen);
+
+    std::string boardPart;
+    char sidePart;
+    std::string castlingPart;
+    std::string enPassantPart;
+    int halfMovePart;
+    int fullMovePart;
+
+    if (!(ss >> boardPart
+              >> sidePart
+              >> castlingPart
+              >> enPassantPart
+              >> halfMovePart
+              >> fullMovePart)) {
+        return false;
+    }
+
+    // 1. Board
+    for (char c : boardPart) {
+
+        if (c == '/') {
+            rank--;
+            file = 0;
+        }
+        else if (c >= '1' && c <= '8') {
+            file += c - '0';
+        }
+        else {
+            int square = rank * 8 + file;
+            int pieceCode = 0;
+
+            switch(c){
+                   case 'P': pieceCode = WP; break;
+                   case 'K': pieceCode = WK; break;
+                   case 'Q': pieceCode = WQ; break;
+                   case 'B': pieceCode = WB; break;
+                   case 'N': pieceCode = WN; break;
+                   case 'R': pieceCode = WR; break;
+
+                   case 'p': pieceCode = BP; break;
+                   case 'k': pieceCode = BK;  break;
+                   case 'q': pieceCode = BQ; break;
+                   case 'b': pieceCode = BB; break;
+                   case 'n': pieceCode = BN; break;
+                   case 'r': pieceCode = BR; break;
+
+                default: return false;
+}
+
+            if (rank < 0 || rank > 7 || file < 0 || file > 7)
+                return false;
+
+            setBoard(square, pieceCode);
+            file++;
+        }
+    }
+
+    // 2. Side to move
+    if (sidePart == 'w')
+        setSideToMove(WHITE);
+    else if (sidePart == 'b')
+        setSideToMove(BLACK);
+    else
+        return false;
+
+    // 3. Castling rights
+   if (castlingPart == "-") {
+    setCastlingRights(false, false, false, false);
+}
+
+else {
+    bool K = false;
+    bool Q = false;
+    bool k = false;
+    bool q = false;
+
+    for (char c : castlingPart) {
+        switch (c) {
+            case 'K':
+                if (K) return false;
+                K = true;
+                break;
+
+            case 'Q':
+                if (Q) return false;
+                Q = true;
+                break;
+
+            case 'k':
+                if (k) return false;
+                k = true;
+                break;
+
+            case 'q':
+                if (q) return false;
+                q = true;
+                break;
+
+            default:
+                return false;
+        }
+    }
+
+    setCastlingRights(K, Q, k, q);
+}
+ 
+
+    // 4. En passant
+    if (enPassantPart == "-") {
+        setEnPassantTargetSquare(-1);
+    }
+    else {
+        if (enPassantPart.length() != 2)
+            return false;
+
+        int file = enPassantPart[0] - 'a';
+        int rank = enPassantPart[1] - '1';
+
+        if (file < 0 || file > 7 || rank < 0 || rank > 7)
+            return false;
+
+        setEnPassantTargetSquare(rank * 8 + file);
+    }
+
+    // 5. Halfmove clock
+    if (halfMovePart < 0)
+        return false;
+
+    setHalfMoveClock(halfMovePart);
+
+    // 6. Fullmove number
+    if (fullMovePart < 1)
+        return false;
+
+    setFullMoveNumber(fullMovePart);
+
+    return true;
 }

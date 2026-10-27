@@ -1,5 +1,6 @@
 #ifndef POSITION_H
 #define POSITION_H
+#include <string>
 
 #include <bitset>
 #include <iostream>
@@ -59,7 +60,7 @@ public:
     Color getSideToMove();
 
     void setCastlingRights(bool K, bool Q, bool k, bool q);
-    std::bitset<4> getCastlingRights();
+    bool getCastlingRights(int index);
 
     void setEnPassantTargetSquare(int square);
     int getEnPassantTargetSquare();
@@ -74,5 +75,7 @@ public:
     void resetPosition();
 
     int getPieceCode(int square);
+    bool loadFEN(const std::string& fen);
+
 };
 #endif
