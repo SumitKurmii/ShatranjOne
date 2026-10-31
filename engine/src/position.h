@@ -52,30 +52,31 @@ public:
     Position();
 
     void setBoard(int square, int pieceCode);
-    int viewBoard(int square);
+    int viewBoard(int square) const;
 
     void printBoard();
 
     void setSideToMove(Color color);
-    Color getSideToMove();
+    Color getSideToMove() const;
 
     void setCastlingRights(bool K, bool Q, bool k, bool q);
-    bool getCastlingRights(int index);
+    bool getCastlingRights(int index) const;
 
     void setEnPassantTargetSquare(int square);
-    int getEnPassantTargetSquare();
+    int getEnPassantTargetSquare() const;
 
     void setHalfMoveClock(int count);
-    int getHalfMoveClock();
+    int getHalfMoveClock() const;
 
     void setFullMoveNumber(int count);
-    int getFullMoveNumber();
+    int getFullMoveNumber() const   ;
 
     void printPosition();
     void resetPosition();
 
-    int getPieceCode(int square);
+    int getPieceCode(int square) const;
     bool loadFEN(const std::string& fen);
+    std::string fenSerialization() const;
 
 };
 #endif

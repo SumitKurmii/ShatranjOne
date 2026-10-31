@@ -22,6 +22,7 @@ The goal is not merely to build a chess website or integrate an existing engine.
 The engine is the technical core of Shatranj One.
 
 ### Position and Move Generation
+
 - Design the board and position representation.
 - Implement FEN parsing and serialization.
 - Generate pseudo-legal and legal chess moves.
@@ -29,6 +30,7 @@ The engine is the technical core of Shatranj One.
 - Validate move generation using perft tests and known reference positions.
 
 ### Search and Evaluation
+
 - Develop a basic position evaluation function.
 - Implement negamax with alpha-beta pruning.
 - Add iterative deepening and move ordering.
@@ -37,6 +39,7 @@ The engine is the technical core of Shatranj One.
 - Benchmark search speed, node counts, and playing strength.
 
 ### Engine Communication
+
 - Implement the Universal Chess Interface (UCI) protocol.
 - Make the engine usable by compatible chess tools and the Shatranj One application.
 - Target search depth 12 in suitable positions, subject to measured performance and available computing resources. Depth is a goal, not a guarantee of playing strength.
@@ -48,6 +51,7 @@ The engine is the technical core of Shatranj One.
 The application will connect the chess engine to a usable chess-playing experience.
 
 ### Frontend
+
 - React-based user interface.
 - Interactive chessboard and move controls.
 - Engine-game interface.
@@ -55,17 +59,19 @@ The application will connect the chess engine to a usable chess-playing experien
 - Game history and review screens.
 
 ### Backend
+
 - Node.js backend for application APIs.
-- User and game management as needed.
-- Communication between the application and the C++ engine.
-- Persistent storage for completed games and relevant game information.
+- Communication between the application and the C++ engine, with search limits, timeouts, and a concurrency limit.
+- Game management, with guest mode first and user accounts only if the schedule allows.
+- Persistent storage for completed games and relevant game information, introduced when game history requires it.
 
 ### Product Features
+
 - Play against the custom engine.
-- Support one-on-one matches.
 - Review completed games.
 - Analyze positions and display recommended moves.
 - Deploy a working version that can be demonstrated through a browser.
+- Optional stretch goal, only if earlier milestones are completed: server-authoritative one-on-one matches over WebSockets.
 
 The frontend, backend, and database choices should remain practical and should be introduced when the corresponding functionality requires them.
 
@@ -81,7 +87,7 @@ The frontend, backend, and database choices should remain practical and should b
 | April 30, 2027 | Feature freeze and stabilization |
 | May 2027 | Testing, documentation, benchmarks, demonstration, and interview preparation |
 
-These dates are targets for planning. Actual completion will depend on testing and demonstrated functionality.
+These dates are targets for planning. Actual completion will depend on testing and demonstrated functionality. If a milestone slips, reduce optional scope rather than skipping correctness checks.
 
 ## 6. Scope Before Placements
 
@@ -96,7 +102,31 @@ The required focus areas are:
 
 The project must remain manageable alongside DSA preparation, academic performance, and placement preparation.
 
-## 7. Deferred Features
+### Scope Tiers
+
+- **Must have:** tested engine core, UCI, deployed playable application, README, benchmarks, and CI.
+- **Strong additions:** saved games, PGN import, position history, game review, and user accounts (guest mode first).
+- **Optional (at most one):** WebSocket multiplayer, or a small evaluation-weight tuning experiment.
+
+### Cut Order if the Schedule Slips
+
+1. The optional stretch goal.
+2. Advanced history statistics (keep PGN import, replay, and single-position lookup).
+3. User accounts (ship guest mode).
+4. Asynchronous analysis jobs beyond a simple in-process queue.
+
+**Never cut:** the custom engine, move-generation correctness, the deployed playable application, core tests, and documentation.
+
+## 7. Key Technical Decisions
+
+- **Board representation:** a 64-entry array behind a clean interface (`a1 = 0`, `h8 = 63`). Bitboards are considered only if profiling shows a measurable benefit after correctness is established.
+- **Engine process:** the engine is an independent C++ executable that communicates over UCI. The Node.js backend starts and manages it as a subprocess; searches never run inside the Node.js event loop.
+- **Correctness first:** perft and make/unmake tests are required before search is trusted.
+- **Deployment shape:** the frontend is hosted on a static host; the backend and engine binary run together in a container on a host that supports long-running processes.
+- **Persistence:** browser storage and PGN export first; PostgreSQL when game history requires it.
+- **Position identity:** piece placement, side to move, castling rights, and en-passant square; the full FEN is stored to verify matches.
+
+## 8. Deferred Features
 
 The following are future research or expansion possibilities, not requirements for the initial release:
 
@@ -106,10 +136,13 @@ The following are future research or expansion possibilities, not requirements f
 - Redis and background job queues.
 - Microservices and Kubernetes.
 - Advanced distributed infrastructure and observability.
+- Bitboards and magic bitboards unless measurements justify them.
+- Compiling the engine to WebAssembly for in-browser play.
+- Social features, tournaments, and rating systems.
 
 These features should be reconsidered after placements or when the core product is complete and stable.
 
-## 8. Engineering Principles
+## 9. Engineering Principles
 
 - Build incrementally and keep each stage testable.
 - Prefer correctness over premature optimization.
@@ -119,16 +152,46 @@ These features should be reconsidered after placements or when the core product 
 - Use CI to catch regressions early.
 - Document implemented and verified functionality separately from planned features.
 - Keep the architecture as simple as the current requirements allow.
+- Record significant design decisions, the alternatives rejected, and their trade-offs.
 
-## 9. Current State
+## 10. Current State
 
-The repository currently contains the initial C++ executable, a CMake-based C++17 build configuration, GoogleTest integration, and a basic test-infrastructure smoke test.
+### Repository and Infrastructure
 
-Chess position representation, move generation, search, the UCI protocol, and the web application remain future implementation work.
+The project has a C++17 executable, CMake build configuration, GoogleTest integration, and GitHub Actions CI. The initial infrastructure milestone was reported as completed by the author.
 
-The next infrastructure milestone is automated CI, followed by the first chess-specific functionality.
+### Position and FEN
 
-## 10. Definition of Success
+The Position and FEN implementation is present in the supplied source files.
+
+- 64-entry mailbox board (`a1 = 0`, `h8 = 63`).
+- Piece encoding and side-to-move state.
+- Castling rights and en-passant target.
+- Halfmove and fullmove counters.
+- Position reset and state accessors.
+- FEN parsing and serialization.
+- Validation of board placement, pieces, kings, castling rights, en-passant data, and move counters.
+- Transactional FEN loading.
+- FEN serialization and round-trip tests.
+
+**Testing status:** the author reports 81/81 tests passing locally after the latest changes. The latest 81-test revision has not been independently verified in CI.
+
+### Next Step
+
+Begin legal move generation using the existing Position representation and interfaces. Follow it with special moves, make/unmake, and perft validation.
+
+### Not Yet Implemented
+
+- Pseudo-legal and legal move generation.
+- Special move execution.
+- Make/unmake.
+- Perft.
+- Evaluation and search.
+- UCI.
+- React frontend and Node.js backend.
+- Game history and persistence.
+
+## 11. Definition of Success
 
 By the end of May 2027, Shatranj One should have:
 
@@ -139,4 +202,4 @@ By the end of May 2027, Shatranj One should have:
 - Automated build and test checks.
 - Documentation, performance measurements, and a demonstration suitable for placement interviews.
 
-Success means having a working system whose design and implementation can be explained clearly—not simply having a long feature list.
+Success means having a working system whose design and implementation can be explained clearly — not simply having a long feature list.

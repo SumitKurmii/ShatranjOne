@@ -1,6 +1,16 @@
 # ShatranjOne
 
-A chess engine written in C++ with CMake, GoogleTest, CTest, and GitHub Actions CI.
+A chess engine written in C++17, with CMake, GoogleTest, CTest, and GitHub Actions CI. The long-term goal is to build a full-stack chess platform around the custom engine.
+
+## Tech Stack
+
+- C++17
+- CMake
+- GoogleTest
+- CTest
+- GitHub Actions CI
+- React (planned)
+- Node.js (planned)
 
 ## Build
 
@@ -11,71 +21,117 @@ From the repository root:
 ```powershell
 cmake -S engine -B engine/build -G "MinGW Makefiles"
 cmake --build engine/build
+```
 
-Linux or macOS
+### Linux or macOS
+
 With a C++ compiler and CMake installed:
+
+```bash
 cmake -S engine -B engine/build
 cmake --build engine/build
+```
 
-Run the Engine
-Windows
+## Run the Engine
+
+### Windows
+
+```powershell
 .\engine\build\shatranj-one.exe
+```
 
-Linux or macOS
+### Linux or macOS
+
+```bash
 ./engine/build/shatranj-one
+```
 
-Run Tests
+## Run Tests
+
 From the repository root:
+
+```bash
 ctest --test-dir engine/build --output-on-failure
+```
 
-The test suite currently contains 20 tests covering position state and FEN parsing/validation.
-Continuous Integration
-GitHub Actions runs the C++ engine build and tests on every push and pull request to main.
+**Latest reported local result: 81/81 tests passing.**
 
-The CI matrix currently covers:
+This result was reported after the latest Position and FEN changes. The latest test-suite revision has not yet been independently verified in CI.
+
+## Continuous Integration
+
+GitHub Actions CI was configured for the C++ engine.
+
+The reported workflow covers:
 - Debug
 - Release
-The workflow configures, builds, and runs CTest on ubuntu-latest.
 
-The CI pipeline has also been verified to fail when the test suite contains an intentional failure.
-Roadmap
+The workflow configures, builds, and runs CTest on `ubuntu-latest` for pushes and pull requests to `main`.
+
+The CI pipeline was also reported to have been tested with an intentional failure to verify that failing tests make the workflow fail.
+
+The latest 81-test revision still needs CI verification.
+
+## Roadmap
+
 - [x] Repository and build system
 - [x] Initial C++ executable
 - [x] GoogleTest integration
-- [x] GitHub Actions CI
+- [x] GitHub Actions CI (initial infrastructure verified by author)
 - [x] Board representation and position state
-- [x] FEN parsing and validation
-- [ ] Legal move generation and perft
+- [x] FEN parsing, validation, and serialization
+- [ ] Pseudo-legal and legal move generation
+- [ ] Special moves: castling, en passant, and promotion
+- [ ] Make/unmake with full position-state restoration
+- [ ] Perft validation against reference positions and node counts
 - [ ] Search and UCI protocol
 - [ ] Web application and game analysis
-Progress
-Position System
-- [x] Created Position class
-- [x] Added 64-square board representation
+
+## Progress
+
+### Position System
+
+- [x] Created `Position` class
+- [x] Added 64-square mailbox board representation (`a1 = 0`, `h8 = 63`)
 - [x] Added piece encoding
 - [x] Added side-to-move state
 - [x] Added castling rights
 - [x] Added en-passant target square
-- [x] Added half-move and full-move counters
+- [x] Added halfmove and fullmove counters
 - [x] Added position reset functionality
-- [x] Added basic GoogleTest coverage
-- [x] Verified tests are discovered and executed by CTest
-FEN
-- [x] Parse board position
+- [x] Added board and state accessors
+- [x] Added validation for invalid setter inputs
+
+### FEN
+
+- [x] Parse board placement
 - [x] Parse side to move
 - [x] Parse castling rights
 - [x] Parse en-passant target square
-- [x] Parse half-move clock
-- [x] Parse full-move number
-- [x] Validate invalid piece characters
+- [x] Parse halfmove clock
+- [x] Parse fullmove number
+- [x] Validate invalid piece characters and malformed board ranks
 - [x] Validate invalid side-to-move field
-- [x] Validate invalid castling rights
-- [x] Validate invalid en-passant square
-- [x] Validate invalid move counters
-- [x] Validate malformed FEN input
-Build & Testing
+- [x] Validate castling rights and king/rook placement
+- [x] Validate en-passant square and pawn placement
+- [x] Validate move counters
+- [x] Reject extra FEN fields
+- [x] Validate king counts and pawn placement on terminal ranks
+- [x] Preserve the previous position when FEN loading fails
+- [x] Serialize FEN and test round trips
+
+### Build and Testing
+
 - [x] CMake build configured
 - [x] GoogleTest integrated
 - [x] CTest configured
-- [x] 20/20 tests passing
-- [x] CI workflow configured
+- [x] Initial test infrastructure verified
+- [x] 81/81 tests passing locally (latest author-reported result)
+
+## Next Milestone: Legal Move Generation and Perft
+
+The next engine milestone is implementing pseudo-legal and legal move generation, followed by special moves, make/unmake, and perft validation.
+
+Correctness will be established using reference perft positions and node counts before moving on to search optimization.
+
+For the full project objectives, roadmap, scope, and architectural decisions, see [PROJECT_VISION.md](PROJECT_VISION.md).

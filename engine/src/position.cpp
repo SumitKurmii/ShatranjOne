@@ -10,16 +10,37 @@ Position::Position() {
     castlingRights.reset();
     enPassantTargetSquare = -1;
     halfMoveClock = 0;
-    fullMoveNumber = 0;
+    fullMoveNumber = 1;
 }
 
 void Position::setBoard(int square, int pieceCode) {
-    if (square >= 0 && square < 64) {
-        board[square] = pieceCode;
+    if (square < 0 || square >= 64) {
+        return;
+    }
+
+    switch (pieceCode) {
+        case EMPTY:
+        case WP:
+        case WK:
+        case WQ:
+        case WB:
+        case WN:
+        case WR:
+        case BP:
+        case BK:
+        case BQ:
+        case BB:
+        case BN:
+        case BR:
+            board[square] = pieceCode;
+            break;
+
+        default:
+            return;
     }
 }
 
-int Position::viewBoard(int square) {
+int Position::viewBoard(int square) const {
     if (square >= 0 && square < 64) {
         return board[square];
     }
@@ -37,13 +58,16 @@ void Position::printBoard() {
     }
 }
 
-void Position::setSideToMove(Color color) {
-    sideToMove = color;
-}
 
-Color Position::getSideToMove() {
+void Position::setSideToMove(Color color) {
+    if (color == WHITE || color == BLACK) {
+        sideToMove = color;
+    }
+}
+Color Position::getSideToMove() const {
     return sideToMove;
 }
+
 
 void Position::setCastlingRights(bool K, bool Q, bool k, bool q) {
     castlingRights[0] = K;
@@ -52,7 +76,11 @@ void Position::setCastlingRights(bool K, bool Q, bool k, bool q) {
     castlingRights[3] = q;
 }
 
-bool Position::getCastlingRights(int index) {
+bool Position::getCastlingRights(int index) const {
+    if (index < 0 || index >= 4) {
+        return false;
+    }
+
     return castlingRights[index];
 }
 
@@ -64,7 +92,7 @@ void Position::setEnPassantTargetSquare(int square) {
     }
 }
 
-int Position::getEnPassantTargetSquare() {
+int Position::getEnPassantTargetSquare() const {
     return enPassantTargetSquare;
 }
 
@@ -72,7 +100,7 @@ void Position::setHalfMoveClock(int count) {
     halfMoveClock = count;
 }
 
-int Position::getHalfMoveClock() {
+int Position::getHalfMoveClock() const {
     return halfMoveClock;
 }
 
@@ -80,7 +108,7 @@ void Position::setFullMoveNumber(int count) {
     fullMoveNumber = count;
 }
 
-int Position::getFullMoveNumber() {
+int Position::getFullMoveNumber() const {
     return fullMoveNumber;
 }
 
@@ -118,20 +146,18 @@ void Position::resetPosition() {
     castlingRights.reset();
     enPassantTargetSquare = -1;
     halfMoveClock = 0;
-    fullMoveNumber = 0;
+    fullMoveNumber = 1;
 }
 
-int Position::getPieceCode(int square) {
+int Position::getPieceCode(int square) const {
     return viewBoard(square);
 }
 
 
 // fen parsing function 
+
 bool Position::loadFEN(const std::string& fen) {
-
-    int rank = 7;
-    int file = 0;
-
+    Position parsed;
     std::stringstream ss(fen);
 
     std::string boardPart;
@@ -141,133 +167,338 @@ bool Position::loadFEN(const std::string& fen) {
     int halfMovePart;
     int fullMovePart;
 
-    if (!(ss >> boardPart
-              >> sidePart
-              >> castlingPart
-              >> enPassantPart
-              >> halfMovePart
-              >> fullMovePart)) {
+    // Extract exactly six fields.
+    if (!(ss >> boardPart >> sidePart >> castlingPart
+             >> enPassantPart >> halfMovePart >> fullMovePart)) {
         return false;
     }
 
-    // 1. Board
-    for (char c : boardPart) {
+    std::string extraField;
+    if (ss >> extraField) {
+        return false;
+    }
 
+    // 1. Parse board placement.
+    int rank = 7;
+    int file = 0;
+
+    for (char c : boardPart) {
         if (c == '/') {
-            rank--;
+            if (file != 8 || rank == 0) {
+                return false;
+            }
+
+            --rank;
             file = 0;
         }
         else if (c >= '1' && c <= '8') {
-            file += c - '0';
+            int emptySquares = c - '0';
+
+            if (file + emptySquares > 8) {
+                return false;
+            }
+
+            file += emptySquares;
         }
         else {
-            int square = rank * 8 + file;
-            int pieceCode = 0;
+            int pieceCode = EMPTY;
 
-            switch(c){
-                   case 'P': pieceCode = WP; break;
-                   case 'K': pieceCode = WK; break;
-                   case 'Q': pieceCode = WQ; break;
-                   case 'B': pieceCode = WB; break;
-                   case 'N': pieceCode = WN; break;
-                   case 'R': pieceCode = WR; break;
+            switch (c) {
+                case 'P': pieceCode = WP; break;
+                case 'K': pieceCode = WK; break;
+                case 'Q': pieceCode = WQ; break;
+                case 'B': pieceCode = WB; break;
+                case 'N': pieceCode = WN; break;
+                case 'R': pieceCode = WR; break;
 
-                   case 'p': pieceCode = BP; break;
-                   case 'k': pieceCode = BK;  break;
-                   case 'q': pieceCode = BQ; break;
-                   case 'b': pieceCode = BB; break;
-                   case 'n': pieceCode = BN; break;
-                   case 'r': pieceCode = BR; break;
+                case 'p': pieceCode = BP; break;
+                case 'k': pieceCode = BK; break;
+                case 'q': pieceCode = BQ; break;
+                case 'b': pieceCode = BB; break;
+                case 'n': pieceCode = BN; break;
+                case 'r': pieceCode = BR; break;
 
-                default: return false;
-}
+                default:
+                    return false;
+            }
 
-            if (rank < 0 || rank > 7 || file < 0 || file > 7)
+            if (rank < 0 || file >= 8) {
                 return false;
+            }
 
-            setBoard(square, pieceCode);
-            file++;
+            parsed.setBoard(rank * 8 + file, pieceCode);
+            ++file;
         }
     }
 
-    // 2. Side to move
-    if (sidePart == 'w')
-        setSideToMove(WHITE);
-    else if (sidePart == 'b')
-        setSideToMove(BLACK);
-    else
+    if (rank != 0 || file != 8) {
         return false;
+    }
 
-    // 3. Castling rights
-   if (castlingPart == "-") {
-    setCastlingRights(false, false, false, false);
-}
+    // 2. Validate exactly one king of each colour.
+    int whiteKingCount = 0;
+    int blackKingCount = 0;
 
-else {
+    for (int square = 0; square < 64; ++square) {
+        int piece = parsed.getPieceCode(square);
+
+        if (piece == WK) {
+            ++whiteKingCount;
+        }
+        else if (piece == BK) {
+            ++blackKingCount;
+        }
+
+        // Pawns cannot occupy rank 1 or rank 8.
+        if ((piece == WP || piece == BP) &&
+            (square / 8 == 0 || square / 8 == 7)) {
+            return false;
+        }
+    }
+
+    if (whiteKingCount != 1 || blackKingCount != 1) {
+        return false;
+    }
+
+    // 3. Side to move.
+    if (sidePart == 'w') {
+        parsed.setSideToMove(WHITE);
+    }
+    else if (sidePart == 'b') {
+        parsed.setSideToMove(BLACK);
+    }
+    else {
+        return false;
+    }
+
+    // 4. Castling rights.
     bool K = false;
     bool Q = false;
     bool k = false;
     bool q = false;
 
-    for (char c : castlingPart) {
-        switch (c) {
-            case 'K':
-                if (K) return false;
-                K = true;
-                break;
+    if (castlingPart != "-") {
+        for (char c : castlingPart) {
+            switch (c) {
+                case 'K':
+                    if (K) return false;
+                    K = true;
+                    break;
 
-            case 'Q':
-                if (Q) return false;
-                Q = true;
-                break;
+                case 'Q':
+                    if (Q) return false;
+                    Q = true;
+                    break;
 
-            case 'k':
-                if (k) return false;
-                k = true;
-                break;
+                case 'k':
+                    if (k) return false;
+                    k = true;
+                    break;
 
-            case 'q':
-                if (q) return false;
-                q = true;
-                break;
+                case 'q':
+                    if (q) return false;
+                    q = true;
+                    break;
 
-            default:
-                return false;
+                default:
+                    return false;
+            }
         }
     }
 
-    setCastlingRights(K, Q, k, q);
-}
- 
+    // Required king and rook locations for each right.
+    if (K && (parsed.getPieceCode(E1) != WK ||
+              parsed.getPieceCode(H1) != WR)) {
+        return false;
+    }
 
-    // 4. En passant
+    if (Q && (parsed.getPieceCode(E1) != WK ||
+              parsed.getPieceCode(A1) != WR)) {
+        return false;
+    }
+
+    if (k && (parsed.getPieceCode(E8) != BK ||
+              parsed.getPieceCode(H8) != BR)) {
+        return false;
+    }
+
+    if (q && (parsed.getPieceCode(E8) != BK ||
+              parsed.getPieceCode(A8) != BR)) {
+        return false;
+    }
+
+    parsed.setCastlingRights(K, Q, k, q);
+
+    // 5. En-passant validation.
     if (enPassantPart == "-") {
-        setEnPassantTargetSquare(-1);
+        parsed.setEnPassantTargetSquare(-1);
     }
     else {
-        if (enPassantPart.length() != 2)
+        if (enPassantPart.length() != 2) {
             return false;
+        }
 
-        int file = enPassantPart[0] - 'a';
-        int rank = enPassantPart[1] - '1';
+        int epFile = enPassantPart[0] - 'a';
+        int epRank = enPassantPart[1] - '1';
 
-        if (file < 0 || file > 7 || rank < 0 || rank > 7)
+        if (epFile < 0 || epFile > 7) {
             return false;
+        }
 
-        setEnPassantTargetSquare(rank * 8 + file);
+        int epSquare = epRank * 8 + epFile;
+
+        if (parsed.getSideToMove() == WHITE) {
+            // Black must just have moved a pawn from rank 7 to rank 5.
+            if (epRank != 5 ||
+                parsed.getPieceCode(epSquare) != EMPTY ||
+                parsed.getPieceCode(epSquare - 8) != BP ||
+                parsed.getPieceCode(epSquare + 8) != EMPTY) {
+                return false;
+            }
+        }
+        else {
+            // White must just have moved a pawn from rank 2 to rank 4.
+            if (epRank != 2 ||
+                parsed.getPieceCode(epSquare) != EMPTY ||
+                parsed.getPieceCode(epSquare + 8) != WP ||
+                parsed.getPieceCode(epSquare - 8) != EMPTY) {
+                return false;
+            }
+        }
+         // A double pawn push resets the halfmove clock.
+        if (halfMovePart != 0) {
+           return false;
+         }
+
+        parsed.setEnPassantTargetSquare(epSquare);
+    }
+
+    // 6. Move counters.
+    if (halfMovePart < 0 || fullMovePart < 1) {
+        return false;
+    }
+    parsed.setHalfMoveClock(halfMovePart);
+    parsed.setFullMoveNumber(fullMovePart);
+    *this = parsed;
+    return true;
+}
+
+//fen Serialization
+std::string Position::fenSerialization() const {
+    std::string s;
+    // 1. Piece placement
+    for (int rank = 7; rank >= 0; rank--) {
+
+        int emptyCount = 0;
+
+        for (int file = 0; file < 8; file++) {
+
+            int sq = rank * 8 + file;
+            int pieceCode = getPieceCode(sq);
+
+            if (pieceCode == EMPTY) {
+                emptyCount++;
+            }
+            else {
+
+                if (emptyCount > 0) {
+                    s += std::to_string(emptyCount);
+                    emptyCount = 0;
+                }
+
+                switch (pieceCode) {
+
+                    case WP: s += 'P'; break;
+                    case WK: s += 'K'; break;
+                    case WQ: s += 'Q'; break;
+                    case WB: s += 'B'; break;
+                    case WN: s += 'N'; break;
+                    case WR: s += 'R'; break;
+
+                    case BP: s += 'p'; break;
+                    case BK: s += 'k'; break;
+                    case BQ: s += 'q'; break;
+                    case BB: s += 'b'; break;
+                    case BN: s += 'n'; break;
+                    case BR: s += 'r'; break;
+
+                    default:
+                        throw std::logic_error(
+                            "Invalid piece code in board"
+                        );
+                }
+            }
+        }
+
+        // Flush remaining empty squares
+        if (emptyCount > 0) {
+            s += std::to_string(emptyCount);
+        }
+
+        if (rank > 0) {
+            s += '/';
+        }
+    }
+
+    // 2. Side to move
+    s += ' ';
+    s += (getSideToMove() == WHITE ? 'w' : 'b');
+
+    // 3. Castling rights
+    s += ' ';
+
+    bool hasCastlingRights = false;
+
+    if (getCastlingRights(0)) {
+        s += 'K';
+        hasCastlingRights = true;
+    }
+
+    if (getCastlingRights(1)) {
+        s += 'Q';
+        hasCastlingRights = true;
+    }
+
+    if (getCastlingRights(2)) {
+        s += 'k';
+        hasCastlingRights = true;
+    }
+
+    if (getCastlingRights(3)) {
+        s += 'q';
+        hasCastlingRights = true;
+    }
+
+    if (!hasCastlingRights) {
+        s += '-';
+    }
+
+    // 4. En-passant target square
+    s += ' ';
+
+    int epSquare = getEnPassantTargetSquare();
+
+    if (epSquare == -1) {
+        s += '-';
+    }
+    else if (epSquare >= 0 && epSquare < 64) {
+        char fileChar = 'a' + (epSquare % 8);
+        char rankChar = '1' + (epSquare / 8);
+
+        s += fileChar;
+        s += rankChar;
+    }
+    else {
+        throw std::logic_error("Invalid en-passant square");
     }
 
     // 5. Halfmove clock
-    if (halfMovePart < 0)
-        return false;
-
-    setHalfMoveClock(halfMovePart);
+    s += ' ';
+    s += std::to_string(getHalfMoveClock());
 
     // 6. Fullmove number
-    if (fullMovePart < 1)
-        return false;
+    s += ' ';
+    s += std::to_string(getFullMoveNumber());
 
-    setFullMoveNumber(fullMovePart);
-
-    return true;
+    return s;
 }
